@@ -141,7 +141,7 @@ router.post('/fields', function(req, res, next) {
     return res.json("Unsupported Media Type");
   }
 
-  if(req.body.lat == undefined || req.body.countrypart == undefined || req.body.lng == undefined || req.body.photos == undefined || req.body.rating == undefined)
+  if(req.body.lat == undefined || req.body.cityname == undefined || req.body.lng == undefined || req.body.photos == undefined || req.body.rating == undefined)
   {
     res.status(400);
     res.send("Not correct format, specify countrypart, lat, lng, photo and rating");
@@ -176,4 +176,53 @@ router.post('/fields', function(req, res, next) {
 });
 
 
+/* Delete  Region*/
+router.delete('/fields/:name', function(req, res, next) {
+
+  if(req.params.name === undefined)
+  {
+    res.status(400);
+    res.send("Need the name of the fild");
+  }
+  var newName = "";
+  if (req.params.name.indexOf('-') > -1)
+  {
+    var temp = req.params.name.substring(0,req.params.name.indexOf('-'));
+    var temp2 = req.params.name.substring(req.params.name.indexOf('-') + 1, req.params.name.length);
+    newName = temp + " " + temp2;
+  }
+  else {
+    newName = req.params.name;
+  }
+  console.log(newName);
+  pool.query('SELECT cityname FROM fields WHERE cityname = $1', [newName], (err, resp) => {
+    if(resp) {
+      console.log("1");
+      if(resp.rows.length !== 0)
+      {
+        console.log("3");
+        pool.query('DELETE FROM fields WHERE cityname = $1', [newName], (err, resp) => {
+          if(resp)
+          {
+            console.log(resp);
+            console.log("Wait we go here?");
+            res.status(204);
+          }
+          else {
+            console.log(err.message);
+            res.status(err.status);
+          }
+        });
+      }
+      else {
+        console.log("2");
+          res.status(400);
+          res.send("No field with this name");
+      }
+    }
+    else {
+      console.log(err.message);
+      res.status(err.status);
+    }  });
+});
 module.exports = router;
